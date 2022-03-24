@@ -1,0 +1,6 @@
+{
+    "blackList": [
+        "ColeSlawski",
+        "PomoTheBot"
+    ]
+}

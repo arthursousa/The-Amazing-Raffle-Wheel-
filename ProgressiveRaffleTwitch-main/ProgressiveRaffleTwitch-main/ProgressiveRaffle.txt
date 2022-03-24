@@ -1,0 +1,22 @@
+{
+    "names": [
+        "J1ffrey",
+        "itsBoats",
+        "@J1ffrey",
+        "AntiPixelated",
+        "PomoTheDog",
+        "BasicMilky",
+        "TheBookSnail",
+        "BuriedThings"
+    ],
+    "weights": [
+        1,
+        52,
+        20,
+        1,
+        17,
+        4,
+        1,
+        1
+    ]
+}
