@@ -118,6 +118,12 @@ public class CommandHandler : MonoBehaviour
 
     }
 
+
+    public void ONLINE()
+    {
+        twitchClient.SendChatMessage("The Amazing Raffle Wheel is Online!");
+    }
+
     public void FilterChannelPoints(OnChannelPointsRewardRedeemedArgs e)
     {
         Debug.Log(e.RewardRedeemed.Redemption.Reward.Title);
@@ -324,8 +330,13 @@ public class CommandHandler : MonoBehaviour
     }
     public void OpenRaffle()
     {
+        if (SelectionWheel.INSTANCE.IS_TESTING)
+            return;
+
         if (UseWheel)
+        { 
             SelectionWheel.INSTANCE.group.alpha = 1;
+        }
         currentRaffleWeights = new Dictionary<string, int>();
         twitchClient.SendChatMessage(string.Format("Raffle is now open type !{0} to join", raffleKeyWord));
         raffleOpen = true;

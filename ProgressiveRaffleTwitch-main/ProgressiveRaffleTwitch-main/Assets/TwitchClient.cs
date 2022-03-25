@@ -49,7 +49,8 @@ public class TwitchClient : MonoBehaviour
         Debug.Log(e.AutoJoinChannel);
         Debug.Log(client.JoinedChannels.Count);
         twitchAPI.APIConnection();
-       
+
+        commandHandler.ONLINE();
     }
 
     private void InitPubSub()

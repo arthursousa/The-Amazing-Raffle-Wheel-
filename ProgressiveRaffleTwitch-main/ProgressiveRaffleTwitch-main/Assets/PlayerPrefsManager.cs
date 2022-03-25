@@ -171,5 +171,54 @@ public class PlayerPrefsManager : MonoBehaviour
         return PlayerPrefs.GetString("ChannelID");
     }
 
+    public void SetminSpeed(TMPro.TMP_InputField inputString)
+    {
+        string s = inputString.text;
+        PlayerPrefs.SetFloat("minSpeed", float.Parse(s));
+
+        SelectionWheel.INSTANCE.InitWheelSettings();
+    }
+    public void SetmaxSpeed(TMPro.TMP_InputField inputString)
+    {
+        string s = inputString.text;
+        PlayerPrefs.SetFloat("maxSpeed", float.Parse(s));
+        SelectionWheel.INSTANCE.InitWheelSettings();
+    }
+    public void SetslowSpeed(TMPro.TMP_InputField inputString)
+    {
+        string s = inputString.text;
+        PlayerPrefs.SetFloat("slowSpeed", float.Parse(s));
+        SelectionWheel.INSTANCE.InitWheelSettings();
+    }
+    public void SetminHue(TMPro.TMP_InputField inputString)
+    {
+        string s = inputString.text;
+        PlayerPrefs.SetFloat("minHue", float.Parse(s));
+        SelectionWheel.INSTANCE.InitWheelSettings();
+    }
+    public void SetmaxHue(TMPro.TMP_InputField inputString)
+    {
+        string s = inputString.text;
+        PlayerPrefs.SetFloat("maxHue", float.Parse(s));
+        SelectionWheel.INSTANCE.InitWheelSettings();
+    }
+    public void SetcolorNumber(TMPro.TMP_InputField inputString)
+    {
+        string s = inputString.text;
+        PlayerPrefs.SetInt("colorNumber", int.Parse(s));
+        SelectionWheel.INSTANCE.InitWheelSettings();
+    }
+    public void SetcolorBrightness(TMPro.TMP_InputField inputString)
+    {
+        string s = inputString.text;
+        PlayerPrefs.SetFloat("colorBrightness", float.Parse(s));
+        SelectionWheel.INSTANCE.InitWheelSettings();
+    }
+    public void SetcolorIntensityt(TMPro.TMP_InputField inputString)
+    {
+        string s = inputString.text;
+        PlayerPrefs.SetFloat("colorIntensity", float.Parse(s));
+        SelectionWheel.INSTANCE.InitWheelSettings();
+    }
 
 }

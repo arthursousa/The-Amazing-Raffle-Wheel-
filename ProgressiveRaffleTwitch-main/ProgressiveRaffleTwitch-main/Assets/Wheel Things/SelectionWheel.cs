@@ -73,14 +73,38 @@ public class SelectionWheel : MonoBehaviour
     public bool useExterior;
     public List<Transform> weightedPieces = new List<Transform>();
     public CanvasGroup group;
+    public float noNameTreshHold;
+    public Color noNameColor;
+    public GameObject hideDuringTest;
     private void Awake()
     {
         INSTANCE = this;
+        InitWheelSettings();
+    }
 
+    public void InitWheelSettings()
+    {
+        if (PlayerPrefs.HasKey("minSpeed"))
+            minInitialSelectorSpeed = PlayerPrefs.GetFloat("minSpeed");
+        if (PlayerPrefs.HasKey("maxSpeed"))
+            maxInitialSelectorSpeed = PlayerPrefs.GetFloat("maxSpeed");
+        if (PlayerPrefs.HasKey("slowSpeed"))
+            slowDowRate = PlayerPrefs.GetFloat("slowSpeed");
+        if (PlayerPrefs.HasKey("minHue"))
+            minHue = PlayerPrefs.GetFloat("minHue");
+        if (PlayerPrefs.HasKey("maxHue"))
+            maxHue = PlayerPrefs.GetFloat("maxHue");
+        if (PlayerPrefs.HasKey("colorNumber"))
+            ammountOfColors = PlayerPrefs.GetInt("colorNumber");
+        if (PlayerPrefs.HasKey("colorBrightness"))
+            colorBrightness = PlayerPrefs.GetFloat("colorBrightness");
+        if (PlayerPrefs.HasKey("colorIntensity"))
+            colorIntensity = PlayerPrefs.GetFloat("colorIntensity");
     }
 
     private void Start()
     {
+        IS_TESTING = false;
         group.alpha = IS_TESTING ? 1 : 0;
     }
 
@@ -134,8 +158,20 @@ public class SelectionWheel : MonoBehaviour
         }
     }
 
+    public void TestSetUp()
+    {
+        IS_TESTING = true;
+        group.alpha = 1;
+        StopAllCoroutines();
+        SetUpWheel();
+        hideDuringTest.SetActive(false);
+    }
+
     public void SpinWheel()
     {
+        if (!IS_TESTING)
+            return;
+
         Debug.Log("weeee");
         StartCoroutine(SpinWheelCoroutine());
     }
@@ -287,6 +323,11 @@ public class SelectionWheel : MonoBehaviour
             newWheelPieceAux.transform.GetChild(0).localRotation = Quaternion.Euler(0, 0, -180 - newWheelPieceAux.GetComponent<Image>().fillAmount * 180);
 
             newWheelPieceAux.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = entry.Key;
+
+            if (newWheelPieceAux.GetComponent<Image>().fillAmount <= noNameTreshHold)
+            {
+                newWheelPieceAux.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().color = noNameColor;
+            }
 
             for (int k = 0; k < entry.Value; k++)
             {
