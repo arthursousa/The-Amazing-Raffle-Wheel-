@@ -1,0 +1,37 @@
+fileFormatVersion: 2
+guid: bda64589721c9524594ad220d6cf9d5a
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - TT Octosquares Trl Exp
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: c4eb903f0b2c12a42a065c3175380621, type: 3}
+  - {fileID: 12800000, guid: 49d4e66f13dd9324cb6dd3b1d0c2e376, type: 3}
+  - {fileID: 12800000, guid: c66228b2fd818cd479450bf25c0acecf, type: 3}
+  - {fileID: 12800000, guid: 018ba05a3cc1c3a4cbf4beffc5972757, type: 3}
+  - {fileID: 12800000, guid: 8bc50c3ea1e5e494c97d5b524a8553ff, type: 3}
+  - {fileID: 12800000, guid: b682684216b26bf4e9b84af6084c79c0, type: 3}
+  - {fileID: 12800000, guid: f5fb056ab79ce12409f3251a0863ac74, type: 3}
+  - {fileID: 12800000, guid: 5192952c609faaa438a16a0d03f7538b, type: 3}
+  - {fileID: 12800000, guid: eb12fcef44328624c9e9629a66a164d3, type: 3}
+  - {fileID: 12800000, guid: 80a419b7e28f755488db8c543835ff14, type: 3}
+  - {fileID: 12800000, guid: fb328fec94acea443846409b8c014887, type: 3}
+  - {fileID: 12800000, guid: d07d38b3b57ce4449af849450ab5230e, type: 3}
+  - {fileID: 12800000, guid: 143c40a90f3dff742a84b05dc2f6e222, type: 3}
+  - {fileID: 12800000, guid: a81f5b03495b3c543934da7eefea97db, type: 3}
+  - {fileID: 12800000, guid: 73f1be0a451555c47afacbb6f76c2fe0, type: 3}
+  - {fileID: 12800000, guid: 8ab11b90d10b6f14484dc7ea3e8afdf6, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

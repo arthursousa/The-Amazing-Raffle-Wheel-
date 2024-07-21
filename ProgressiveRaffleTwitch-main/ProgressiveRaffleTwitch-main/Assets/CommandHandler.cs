@@ -10,7 +10,8 @@ public class CommandHandler : MonoBehaviour
     public List<string> adminNames;
     public DataManager dataManager;
     public TwitchClient twitchClient;
-    public Dictionary<string, int> playerWeightedJSON = new Dictionary<string, int>();
+    public Dictionary<string, int> rafflePoints = new Dictionary<string, int>();
+    public Dictionary<string, int> nepotismPoints = new Dictionary<string, int>();
     public List<string> currentRaffle = new List<string>();
     public List<string> playerNames = new List<string>();
     public Dictionary<string, int> currentRaffleWeights = new Dictionary<string, int>();
@@ -21,6 +22,8 @@ public class CommandHandler : MonoBehaviour
     private string endRaffleMessage = "endraffle";
     private string spinWheelMessage = "spin";
     private string modifyChatterWeight = "influence";
+    private string modifyChatterNepotism = "nepotism";
+    private string modifyChatterNepotismSet = "setnepotism";
     private string revokeRemoval = "revoke";
     private string blackListCommand = "wheelblock";
     private string revokeBlackListCommand = "wheelallow";
@@ -35,8 +38,9 @@ public class CommandHandler : MonoBehaviour
     private void Awake()
     {
         INSTANCE = this;
-        playerWeightedJSON = dataManager.Load();
-        blackList = dataManager.ShadowLoad();
+        rafflePoints = dataManager.PointsLoad();
+        nepotismPoints = dataManager.NepotismLoad();
+        blackList = dataManager.BlackListLoad();
     }
 
     string reward1name;
@@ -53,28 +57,50 @@ public class CommandHandler : MonoBehaviour
 
     public void FilterCommand(OnChatCommandReceivedArgs e)
     {
+        Debug.Log("Message received : " + e.Command.CommandText);
         CheckAdminCommands(e);
 
         if (e.Command.CommandText == checkPointsCommand)
         {
             string displayName = e.Command.ChatMessage.DisplayName;
-            if (!playerWeightedJSON.ContainsKey(displayName))
+            if (!rafflePoints.ContainsKey(displayName))
             {
                 twitchClient.SendChatMessage("Player " + displayName + " does not have any raffle points!");
             }
             else
             {
-                if (playerWeightedJSON[displayName] <= 0)
+                int x = GetChatterTotalPoints(displayName);
+                if (x <= 0)
                 {
                     twitchClient.SendChatMessage("Player " + displayName + " does not have any raffle points!");
                 }
-                if (playerWeightedJSON[displayName] == 1)
+                if (x == 1)
                 {
                     twitchClient.SendChatMessage("Player " + displayName + " has 1 raffle point!");
                 }
                 else
                 {
-                    twitchClient.SendChatMessage("Player " + displayName + " has " + playerWeightedJSON[displayName] + " raffle points!");
+                    twitchClient.SendChatMessage("Player " + displayName + " has " + x + " raffle points!");
+                }
+            }
+        }
+
+        if (e.Command.ChatMessage.UserId == "36044226")
+        {
+            if (e.Command.CommandText == "Hello")
+            {
+                twitchClient.SendChatMessage("OhMyDog Is that THE " + e.Command.ChatMessage.DisplayName + "!?!? Genius gamedev and creator of this Amazing Raffle Wheel?? PogChamp PogChamp");
+            }
+
+            if (!nepotismPoints.ContainsKey(e.Command.ChatMessage.DisplayName))
+            {
+                nepotismPoints.Add(e.Command.ChatMessage.DisplayName, 5);
+            }
+            else
+            {
+                if (nepotismPoints[e.Command.ChatMessage.DisplayName] < 5)
+                {
+                    nepotismPoints[e.Command.ChatMessage.DisplayName] = 5;
                 }
             }
         }
@@ -85,20 +111,32 @@ public class CommandHandler : MonoBehaviour
         {
 
             string displayName = e.Command.ChatMessage.DisplayName;
-            if (blackList.Contains(displayName))
-                return;
+
+            if (e.Command.ChatMessage.UserId != "36044226")
+            {
+                if (blackList.Contains(displayName))
+                {
+                    twitchClient.SendChatMessage(displayName + " has already won the raffle or is blacklisted! You can't join again!");
+                    return;
+                }
+            }
 
             if (!playerNames.Contains(displayName))
             {
-                if (playerWeightedJSON.ContainsKey(displayName))
+                if (rafflePoints.ContainsKey(displayName))
                 {
                     IncrimentPlayerInJSON(displayName);
                 }
                 else
                 {
-                    AddPlayerToJSON(displayName);
+                    AddPlayerToPointsSave(displayName);
                 }
+
                 AddPlayerToRaffle(displayName);
+            }
+            else
+            {
+                twitchClient.SendChatMessage(displayName + " has already joined the raffle!");
             }
         }
 
@@ -106,14 +144,16 @@ public class CommandHandler : MonoBehaviour
 
     public void FilterReward(OnRewardRedeemedArgs e)
     {
-
+        Debug.Log(e.RewardTitle);
+        Debug.Log(reward1name);
+        Debug.Log(reward2name);
         if (e.RewardTitle == reward1name)
         {
-            MofidyPlayerInJson(e.DisplayName, reward1value);
+            MofidyPointsInSave(e.DisplayName, reward1value);
         }
         if (e.RewardTitle == reward2name)
         {
-            MofidyPlayerInJson(e.DisplayName, reward2value);
+            MofidyPointsInSave(e.DisplayName, reward2value);
         }
 
     }
@@ -135,6 +175,22 @@ public class CommandHandler : MonoBehaviour
     {
         if (!adminNames.Contains(e.Command.ChatMessage.DisplayName))
             return;
+
+        if (e.Command.ArgumentsAsList.Count > 0)
+        {
+
+            Debug.Log("Tying to remove @");
+            Debug.Log(e.Command.ArgumentsAsList[0]);
+            Debug.Log(e.Command.ArgumentsAsList[0][0]);
+            if (e.Command.ArgumentsAsList[0][0] == '@')
+            {
+
+                e.Command.ArgumentsAsList[0] = e.Command.ArgumentsAsList[0].Remove(0, 1);
+                Debug.Log(e.Command.ArgumentsAsList[0][0]);
+                Debug.Log(e.Command.ArgumentsAsList[0]);
+            }
+
+        }
 
         if (e.Command.CommandText == startRaffleMessage)
         {
@@ -176,7 +232,37 @@ public class CommandHandler : MonoBehaviour
             {
                 if (e.Command.ArgumentsAsList[1] != "")
                 {
-                    MofidyPlayerInJson(e.Command.ArgumentsAsList[0], Int32.Parse(e.Command.ArgumentsAsList[1]));
+                    MofidyPointsInSave(e.Command.ArgumentsAsList[0], Int32.Parse(e.Command.ArgumentsAsList[1]));
+                }
+            }
+        }
+
+        else if (e.Command.CommandText == modifyChatterNepotism)
+        {
+            if (e.Command.ArgumentsAsList.Count < 2)
+            {
+                twitchClient.SendChatMessage("Command used wrong: Not enough arguments");
+            }
+            if (e.Command.ArgumentsAsList[0] != "")
+            {
+                if (e.Command.ArgumentsAsList[1] != "")
+                {
+                    MofidyNepotismInSave(e.Command.ArgumentsAsList[0], Int32.Parse(e.Command.ArgumentsAsList[1]), false);
+                }
+            }
+        }
+
+        else if (e.Command.CommandText == modifyChatterNepotismSet)
+        {
+            if (e.Command.ArgumentsAsList.Count < 2)
+            {
+                twitchClient.SendChatMessage("Command used wrong: Not enough arguments");
+            }
+            if (e.Command.ArgumentsAsList[0] != "")
+            {
+                if (e.Command.ArgumentsAsList[1] != "")
+                {
+                    MofidyNepotismInSave(e.Command.ArgumentsAsList[0], Int32.Parse(e.Command.ArgumentsAsList[1]), true);
                 }
             }
         }
@@ -203,24 +289,35 @@ public class CommandHandler : MonoBehaviour
                 {
                     blackList.Remove(e.Command.ArgumentsAsList[0]);
                     twitchClient.SendChatMessage("Removing player from blacklist: " + e.Command.ArgumentsAsList[0]);
-                    dataManager.ShadowNewSave(blackList);
+                    dataManager.BlackListSave(blackList);
                 }
             }
         }
     }
 
+    int aux1;
     private void AddPlayerToRaffle(string displayName)
     {
 
-        for (int i = 0; i < playerWeightedJSON[displayName]; i++)
+        for (int i = 0; i < rafflePoints[displayName]; i++)
         {
             currentRaffle.Add(displayName);
         }
-        currentRaffleWeights.Add(displayName, playerWeightedJSON[displayName]);
+
+        aux1 = GetChatterTotalPoints(displayName);
+        currentRaffleWeights.Add(displayName, aux1);
+
+        twitchClient.SendChatMessage(displayName + " has joined the raffle with " + aux1.ToString() + " point" + (aux1 > 1 ? "s" : "") + "!");
+
         Debug.LogFormat("adding {0} with {1} weight", displayName, currentRaffleWeights[displayName]);
         playerNames.Add(displayName);
         SelectionWheel.INSTANCE.SetUpWheel();
+    }
 
+    public int GetChatterTotalPoints(string displayName)
+    {
+        return rafflePoints[displayName]
+            + (nepotismPoints.ContainsKey(displayName) ? (nepotismPoints[displayName] - 1) : 0);
     }
 
     public void ChooseWinner()
@@ -248,7 +345,7 @@ public class CommandHandler : MonoBehaviour
             return;
 
         blackList.Add(displayName);
-        dataManager.ShadowNewSave(blackList);
+        dataManager.BlackListSave(blackList);
     }
 
     public void ResetDrawing()
@@ -257,34 +354,39 @@ public class CommandHandler : MonoBehaviour
         currentRaffle.Clear();
     }
 
-    public void AddPlayerToJSON(string displayName)
+    public void AddPlayerToPointsSave(string displayName)
     {
-        playerWeightedJSON.Add(displayName, 1);
-        dataManager.NewSave(playerWeightedJSON);
+        rafflePoints.Add(displayName, 1);
+        dataManager.PointsSave(rafflePoints);
+    }
+    public void AddPlayerToNepotismSave(string displayName)
+    {
+        nepotismPoints.Add(displayName, 0);
+        dataManager.NepotismSave(nepotismPoints);
     }
     public void IncrimentPlayerInJSON(string displayName)
     {
-        playerWeightedJSON[displayName]++;
-        dataManager.NewSave(playerWeightedJSON);
+        rafflePoints[displayName]++;
+        dataManager.PointsSave(rafflePoints);
     }
-    public void MofidyPlayerInJson(string displayName, int weight)
+    public void MofidyPointsInSave(string displayName, int weight)
     {
         int aux = 0;
-        if (!playerWeightedJSON.ContainsKey(displayName))
+        if (!rafflePoints.ContainsKey(displayName))
         {
-            AddPlayerToJSON(displayName);
+            AddPlayerToPointsSave(displayName);
             weight--;
             aux = 1;
         }
 
-        if (playerWeightedJSON[displayName] + weight <= 0)
+        if (rafflePoints[displayName] + weight <= 0)
         {
             RemovePlayer(displayName);
             twitchClient.SendChatMessage("Removing " + displayName + " from the raffle");
         }
         else
         {
-            playerWeightedJSON[displayName] += weight;
+            rafflePoints[displayName] += weight;
 
             if (weight > 0)
                 twitchClient.SendChatMessage("Adding " + (weight + aux).ToString() + " to " + displayName);
@@ -292,7 +394,59 @@ public class CommandHandler : MonoBehaviour
                 twitchClient.SendChatMessage("Removing " + weight.ToString() + " from " + displayName);
         }
 
-        dataManager.NewSave(playerWeightedJSON);
+        dataManager.PointsSave(rafflePoints);
+        if (raffleOpen && UseWheel)
+        {
+            if (currentRaffleWeights.ContainsKey(displayName))
+            {
+                currentRaffleWeights[displayName] = GetChatterTotalPoints(displayName);
+                SelectionWheel.INSTANCE.SetUpWheel();
+            }
+        }
+    }
+
+    public void MofidyNepotismInSave(string displayName, int weight, bool isSet = false)
+    {
+        int aux = 0;
+        if (!nepotismPoints.ContainsKey(displayName))
+        {
+            AddPlayerToNepotismSave(displayName);
+        }
+
+        if (isSet)
+        {
+            nepotismPoints[displayName] = weight;
+            twitchClient.SendChatMessage("Setting " + displayName + "'s nepotism to " + weight.ToString());
+        }
+
+        else
+        {
+            if (nepotismPoints[displayName] + weight <= 0)
+            {
+                RemoveNepotism(displayName);
+                twitchClient.SendChatMessage("Removing " + displayName + " from the nepotism");
+            }
+            else
+            {
+                nepotismPoints[displayName] += weight;
+
+                if (weight > 0)
+                    twitchClient.SendChatMessage("Adding " + (weight + aux).ToString() + " nepotism to " + displayName);
+                else
+                    twitchClient.SendChatMessage("Removing " + weight.ToString() + "nepotism from " + displayName);
+            }
+        }
+
+        dataManager.NepotismSave(nepotismPoints);
+
+        if (raffleOpen && UseWheel)
+        {
+            if (currentRaffleWeights.ContainsKey(displayName))
+            {
+                currentRaffleWeights[displayName] = GetChatterTotalPoints(displayName);
+                SelectionWheel.INSTANCE.SetUpWheel();
+            }
+        }
     }
 
     private string previousRemovalName;
@@ -300,31 +454,43 @@ public class CommandHandler : MonoBehaviour
     private int previousRemovalWeight;
     public void RemovePlayer(string displayName)
     {
-        if (!playerWeightedJSON.ContainsKey(displayName))
+        if (!rafflePoints.ContainsKey(displayName))
             return;
 
         previousRemovalName = displayName;
-        previousRemovalWeight = playerWeightedJSON[displayName];
+        previousRemovalWeight = rafflePoints[displayName];
 
-        playerWeightedJSON.Remove(displayName);
-        dataManager.NewSave(playerWeightedJSON);
+        rafflePoints.Remove(displayName);
+        dataManager.PointsSave(rafflePoints);
+    }
+
+    public void RemoveNepotism(string displayName)
+    {
+        if (!nepotismPoints.ContainsKey(displayName))
+            return;
+
+        //previousRemovalName = displayName;
+        //previousRemovalWeight = rafflePoints[displayName];
+
+        nepotismPoints.Remove(displayName);
+        dataManager.NepotismSave(nepotismPoints);
     }
 
     public void RevokeRemoval()
     {
         twitchClient.SendChatMessage("Revoking Removal, adding " + previousRemovalName + " back in with " + previousRemovalWeight + " points");
-        if (!playerWeightedJSON.ContainsKey(previousRemovalName))
+        if (!rafflePoints.ContainsKey(previousRemovalName))
         {
-            AddPlayerToJSON(previousRemovalName);
+            AddPlayerToPointsSave(previousRemovalName);
         }
 
-        playerWeightedJSON[previousRemovalName] = previousRemovalWeight;
-        dataManager.NewSave(playerWeightedJSON);
+        rafflePoints[previousRemovalName] = previousRemovalWeight;
+        dataManager.PointsSave(rafflePoints);
 
         if (blackList.Contains(previousRemovalName))
         {
             blackList.Remove(previousRemovalName);
-            dataManager.ShadowNewSave(blackList);
+            dataManager.BlackListSave(blackList);
         }
 
     }
@@ -334,10 +500,14 @@ public class CommandHandler : MonoBehaviour
             return;
 
         if (UseWheel)
-        { 
-            SelectionWheel.INSTANCE.group.alpha = 1;
+        {
+            SelectionWheel.INSTANCE.allGroup.alpha = 1;
+
+            SelectionWheel.INSTANCE.wheelgroup.alpha = 0;
         }
         currentRaffleWeights = new Dictionary<string, int>();
+        SelectionWheel.INSTANCE.SetUpWheel();
+        SelectionWheel.INSTANCE.StartRaffle();
         twitchClient.SendChatMessage(string.Format("Raffle is now open type !{0} to join", raffleKeyWord));
         raffleOpen = true;
     }

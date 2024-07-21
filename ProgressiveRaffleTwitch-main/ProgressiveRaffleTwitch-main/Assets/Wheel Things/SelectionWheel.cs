@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 
 public class SelectionWheel : MonoBehaviour
 {
@@ -14,9 +15,20 @@ public class SelectionWheel : MonoBehaviour
     public float selectorRadius;
     public float baseFade;
     public float baseScale;
+    public float pieceSelectedScaleMultiplier;
+    [Header("Tween")]
+    public float infoScaleMult = 1.1f;
+    public float infoScaleDuration;
+    public float infoRotDuration;
+    public float infoRotAngle;
+    public Ease infoScaleEase;
+    public float winShake;
+    public Vector3 winPunch;
+    public int punchVibrato;
+    public float punchElasticity;
+    public float winShakeDuration;
 
     [Header("References")]
-    public CanvasGroup wheelGroup;
     public Transform wheelPieceHolder;
     public Transform iconHolder;
     public Transform dividerHolder;
@@ -33,6 +45,24 @@ public class SelectionWheel : MonoBehaviour
     public GameObject rightArmEquippedIconHolder;
     public List<Transform> leftSavedSlotIconHolders;
     public List<Transform> rightSavedSlotIconHolders;
+
+    [Header("Lights")]
+    public Color lightsOffColor;
+    public Color lightsOnColor;
+    public Color indicatorColor;
+    public Image background1;
+    public Image background2;
+    public Image indicator;
+
+    public Image lightOff1;
+    public Image lightOn1;
+    public Image lightOff2;
+    public Image lightOn2;
+    public Image lightOff3;
+    public Image lightOn3;
+    public float lightCircleTime;
+    public float lightCircleDelay;
+    public float BlinkLightTime;
 
     public bool isSelectingArm = false;
 
@@ -67,12 +97,14 @@ public class SelectionWheel : MonoBehaviour
     public float colorIntensity;
     public float colorBrightness;
     public TextMeshProUGUI selectedText;
+    public TextMeshProUGUI informationText;
     public float minInitialSelectorSpeed;
     public float maxInitialSelectorSpeed;
     public float slowDowRate = 0.95f;
     public bool useExterior;
     public List<Transform> weightedPieces = new List<Transform>();
-    public CanvasGroup group;
+    public CanvasGroup allGroup;
+    public CanvasGroup wheelgroup;
     public float noNameTreshHold;
     public Color noNameColor;
     public GameObject hideDuringTest;
@@ -105,9 +137,58 @@ public class SelectionWheel : MonoBehaviour
     private void Start()
     {
         IS_TESTING = false;
-        group.alpha = IS_TESTING ? 1 : 0;
+        allGroup.alpha = IS_TESTING ? 1 : 0;
+        wheelgroup.alpha = IS_TESTING ? 1 : 0;
+
+        ///
+
+        Color x;
+        if (PlayerPrefs.HasKey("wheelBackgroundColor"))
+        {
+            ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("wheelBackgroundColor"), out x);
+            SetBackgroundColor(x);
+        }
+        if (PlayerPrefs.HasKey("wheelLightOffColor"))
+        {
+            ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("wheelLightOffColor"), out x);
+            SetBackgroundColor(x);
+            SetOffColor(x);
+        }
+        if (PlayerPrefs.HasKey("wheelLightOnColor"))
+        {   
+            ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("wheelLightOnColor"), out x);
+            SetBackgroundColor(x);
+            SetOnColor(x);
+        }
+        if (PlayerPrefs.HasKey("wheelIndicatorColor"))
+        {    
+            ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("wheelIndicatorColor"), out x);
+            SetBackgroundColor(x);
+            SetIndicatorColor(x);
+        }      
     }
 
+    public void SetBackgroundColor(Color color)
+    {
+        background1.color = color;
+        background2.color = color;
+    }
+    public void SetOnColor(Color color)
+    {
+        lightOn1.color = color;
+        lightOn2.color = color;
+        lightOn3.color = color;
+    }
+    public void SetOffColor(Color color)
+    {
+        lightOff1.color = color;
+        lightOff2.color = color;
+        lightOff3.color = color;
+    }
+    public void SetIndicatorColor(Color color)
+    {
+        indicator.color = color;
+    }
 
     // Update is called once per frame
     //void Update()
@@ -161,7 +242,9 @@ public class SelectionWheel : MonoBehaviour
     public void TestSetUp()
     {
         IS_TESTING = true;
-        group.alpha = 1;
+        allGroup.alpha = 1;
+        wheelgroup.alpha = 1;
+        DoBlinkLights();
         StopAllCoroutines();
         SetUpWheel();
         hideDuringTest.SetActive(false);
@@ -169,18 +252,25 @@ public class SelectionWheel : MonoBehaviour
 
     public void SpinWheel()
     {
-        if (!IS_TESTING)
-            return;
+        //if (!IS_TESTING)
+        //    return;
 
         Debug.Log("weeee");
+
         StartCoroutine(SpinWheelCoroutine());
     }
 
     public IEnumerator SpinWheelCoroutine()
     {
         bool isSpining = true;
+        DoBlinkLights();
+        informationText.gameObject.SetActive(false);
+        //selectedText.transform.DOKill(true);
+        selectedText.transform.DOKill(true);
+        selectedText.transform.eulerAngles = Vector3.zero;
+
         float auxAngle;
-        int currentlySelectedIndex;
+        int currentlySelectedIndex = -1;
         GameObject currentReference = useExterior ? selectorReferenceExterior : selectorReferenceInterior;
 
         Transform currentSpinnable = useExterior ? wheelRotator : selector;
@@ -220,11 +310,11 @@ public class SelectionWheel : MonoBehaviour
                 currentlySelectedIndex = useExterior ? weightedPieces.Count - currentlySelectedIndex : currentlySelectedIndex;
 
             //   wheelPieceHolder.GetChild(currentlySelectedIndex).GetComponent<Image>().DOFade(1, 0);
-            weightedPieces[currentlySelectedIndex].localScale = Vector3.one * baseScale * 1.05f;
+            weightedPieces[currentlySelectedIndex].localScale = Vector3.one * baseScale * pieceSelectedScaleMultiplier;
+            //"<mspace=0.5em>" +
             selectedText.text = weightedPieces[currentlySelectedIndex].GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text;
 
             //CheckArmOnInput(ThirdPersonUserController.INSTANCE.m_leftDown, ThirdPersonUserController.INSTANCE.m_rightDown);
-
 
             //if (Input.GetButtonDown("Selection1"))
             //{
@@ -247,19 +337,54 @@ public class SelectionWheel : MonoBehaviour
             // Time.fixedDeltaTime = Time.timeScale * 0.02f;
             yield return null;
         }
+
+        if (currentlySelectedIndex == -1)
+            yield break;
+
+        yield return new WaitForSecondsRealtime(0.5f);
+        //selectedText.transform.DOShakeScale(winShakeDuration, winShake, 10, 45, false, ShakeRandomnessMode.Harmonic);
+        // selectedText.transform.DOPunchScale(winPunch, winShakeDuration, punchVibrato, punchElasticity);
+        Color aux = weightedPieces[currentlySelectedIndex].GetComponentInChildren<Image>().color;
+        selectedText.DOColor(aux, winShakeDuration / 4).SetLoops(4, LoopType.Yoyo);
+
         if (!IS_TESTING)
         {
-            yield return new WaitForSecondsRealtime(1.5f);
 
+            yield return new WaitForSecondsRealtime(1.5f);
             CommandHandler.INSTANCE.WheelWin(selectedText.text);
             CommandHandler.INSTANCE.ResetDrawing();
             yield return new WaitForSecondsRealtime(3);
-            group.alpha = 0;
+
+            if (blinkCoroutine != null)
+                StopCoroutine(blinkCoroutine);
+
+            lightOn3.DOKill();
+
+            weightedPieces[currentlySelectedIndex].GetComponentInChildren<Image>().color = Color.white;
+            allGroup.alpha = 0;
+            wheelgroup.alpha = 0;
         }
     }
 
     private float currentWheelDivisionAngle;
     private GameObject newWheelPieceAux;
+
+    public void StartRaffle()
+    {
+        Debug.Log("STARTING RAFFLE");
+        selectedText.text = "!" + CommandHandler.INSTANCE.raffleKeyWord;
+        informationText.gameObject.SetActive(true);
+        selectedText.transform.eulerAngles = new Vector3(0, 0, -infoRotAngle / 2);
+        selectedText.transform.DOScale(selectedText.transform.localScale.y * infoScaleMult, infoScaleDuration).SetEase(infoScaleEase).SetLoops(-1, LoopType.Yoyo);
+        selectedText.transform.DORotate(new Vector3(0, 0, infoRotAngle), infoRotDuration).SetEase(infoScaleEase).SetLoops(-1, LoopType.Yoyo);
+
+        ColorOffset = Random.Range(0, ammountOfColors);
+
+        DoCircleLights();
+    }
+
+
+    int ColorOffset = 0;
     public void SetUpWheel()
     {
         foreach (Transform child in wheelPieceHolder)
@@ -292,7 +417,8 @@ public class SelectionWheel : MonoBehaviour
         currentWheelDivisionAngle = (float)((float)360 / (float)totalRaffleWeight);
 
         int i = 0;
-        int color = 0;
+        // int color = ColorOffset;
+        int color = Random.Range(0, ammountOfColors);
         weightedPieces = new List<Transform>();
         wheelRotator.rotation = Quaternion.Euler(0, 0, 0);
         selector.rotation = Quaternion.Euler(0, 0, 0);
@@ -316,6 +442,7 @@ public class SelectionWheel : MonoBehaviour
             }
             newWheelPieceAux = Instantiate(wheelPiece, wheelPieceHolder.transform.position, Quaternion.Euler(0, 0, (i + offset) * currentWheelDivisionAngle + 180 * (1 + (currentWheelDivisionAngle * 1f / 360))), wheelPieceHolder);
             newWheelPieceAux.GetComponent<Image>().fillAmount = (currentWheelDivisionAngle * entry.Value / 360) * 1f;
+            //newWheelPieceAux.transform.GetChild(1).GetComponent<Image>().fillAmount = (currentWheelDivisionAngle * entry.Value / 360) * 1f;
 
             // newWheelPieceAux.GetComponent<Image>().color = Random.ColorHSV(0,0.5f,1,1,0.5f,0.5f);
             newWheelPieceAux.GetComponent<Image>().color = Color.HSVToRGB(minHue + (maxHue - minHue) * ((color % (float)ammountOfColors) / ammountOfColors), colorIntensity, colorBrightness);
@@ -337,7 +464,67 @@ public class SelectionWheel : MonoBehaviour
             color++;
         }
 
+        wheelgroup.alpha = CommandHandler.INSTANCE.currentRaffleWeights.Count > 0 ? 1 : 0;
     }
+
+    public void DoCircleLights()
+    {
+        lightOff1.gameObject.SetActive(false);
+        lightOff2.gameObject.SetActive(false);
+        lightOff3.gameObject.SetActive(true);
+        RecursionTweenLoL(lightOn3, 0);
+        //RecursionTweenLoL(lightOn2, lightCircleDelay);
+    }
+    private void RecursionTweenLoL(Image light, float delay)
+    {
+        if (light.fillClockwise)
+        {
+            light.fillClockwise = false;
+            light.DOFillAmount(0, lightCircleTime).SetDelay(delay).SetEase(Ease.Linear).OnComplete(() => { RecursionTweenLoL(light, 0); });
+        }
+        else
+        {
+            light.fillClockwise = true;
+            light.DOFillAmount(1, lightCircleTime).SetDelay(delay).SetEase(Ease.Linear).OnComplete(() => { RecursionTweenLoL(light, 0); });
+        }
+    }
+
+    Coroutine blinkCoroutine;
+    public void DoBlinkLights()
+    {
+        lightOff1.gameObject.SetActive(true);
+        lightOff2.gameObject.SetActive(true);
+        lightOff3.gameObject.SetActive(false);
+
+        if (blinkCoroutine != null)
+            StopCoroutine(blinkCoroutine);
+        blinkCoroutine = StartCoroutine(BlinkLightCoroutine());
+    }
+
+    private IEnumerator BlinkLightCoroutine()
+    {
+        float c = 0;
+        lightOn1.gameObject.SetActive(true);
+        lightOn2.gameObject.SetActive(false);
+        while (true)
+        {
+            if (c <= 0)
+            {
+                lightOn1.gameObject.SetActive(!lightOn1.isActiveAndEnabled);
+                lightOn2.gameObject.SetActive(!lightOn2.isActiveAndEnabled);
+                c = BlinkLightTime;
+            }
+            c -= Time.deltaTime;
+            yield return null;
+        }
+    }
+
+    //}
+    //public void DoBlinkLights()
+    //{
+
+    //}
+
 
     //private float auxAngle;
     //private int currentlySelectedIndex;

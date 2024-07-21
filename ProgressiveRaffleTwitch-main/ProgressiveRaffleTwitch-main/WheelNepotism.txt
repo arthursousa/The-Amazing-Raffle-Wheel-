@@ -1,0 +1,24 @@
+{
+    "entries": [
+        {
+            "Key": "@PomoTheBot",
+            "Value": 10
+        },
+        {
+            "Key": "PomoTheBot",
+            "Value": 5
+        },
+        {
+            "Key": "BrainoidGames",
+            "Value": 100
+        },
+        {
+            "Key": "SirAeron",
+            "Value": 20
+        },
+        {
+            "Key": "PomoTheDev",
+            "Value": 505
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "entries": [
+        {
+            "Key": "BrainoidGames",
+            "Value": 10002
+        },
+        {
+            "Key": "SirAeron",
+            "Value": 100
+        },
+        {
+            "Key": "PomoTheDev",
+            "Value": 10015
+        }
+    ]
+}

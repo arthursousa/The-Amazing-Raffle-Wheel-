@@ -105,41 +105,34 @@ public class PlayerPrefsManager : MonoBehaviour
     {
         return PlayerPrefs.GetString("BotRefreshToken");
     }
-
     public void SetRewardOneString(TMPro.TMP_InputField inputString)
     {
         string s = inputString.text;
         PlayerPrefs.SetString("RewardOneName", s);
     }
-
     public void SetRewardTwoString(TMPro.TMP_InputField inputString)
     {
         string s = inputString.text;
         PlayerPrefs.SetString("RewardTwoName", s);
     }
-
     public void SetRewardOneValue(TMPro.TMP_InputField inputString)
     {
         string s = inputString.text;
         PlayerPrefs.SetString("RewardOneValue", s);
     }
-
     public void SetRewardTwoValue(TMPro.TMP_InputField inputString)
     {
         string s = inputString.text;
         PlayerPrefs.SetString("RewardTwoValue", s);
     }
-
     public string GetRewardOneName()
     {
         return PlayerPrefs.GetString("RewardOneName");
     }
-
     public string GetRewardTwoName()
     {
         return PlayerPrefs.GetString("RewardTwoName");
     }
-
     public int GetRewardOneValue()
     {
         int aux;
@@ -149,7 +142,6 @@ public class PlayerPrefsManager : MonoBehaviour
         }
         return 0;
     }
-
     public int GetRewardTwoValeu()
     {
         int aux;
@@ -159,18 +151,15 @@ public class PlayerPrefsManager : MonoBehaviour
         }
         return 0;
     }
-
     public void SetChannelID(TMPro.TMP_InputField inputString)
     {
         string s = inputString.text;
         PlayerPrefs.SetString("ChannelID", s);
     }
-
     public string GetChannelID()
     {
         return PlayerPrefs.GetString("ChannelID");
     }
-
     public void SetminSpeed(TMPro.TMP_InputField inputString)
     {
         string s = inputString.text;
@@ -221,4 +210,41 @@ public class PlayerPrefsManager : MonoBehaviour
         SelectionWheel.INSTANCE.InitWheelSettings();
     }
 
+    public void SetWheelBackgroundColor(TMPro.TMP_InputField inputStrin)
+    {
+        Color x;
+        ColorUtility.TryParseHtmlString(inputStrin.text, out x);
+
+        PlayerPrefs.SetString("wheelBackgroundColor", inputStrin.text);
+        SelectionWheel.INSTANCE.SetBackgroundColor(x);
+    }
+    public void SetWheelLightsOfFColor(TMPro.TMP_InputField inputStrin)
+    {
+        Color x;
+        ColorUtility.TryParseHtmlString(inputStrin.text, out x);
+
+        PlayerPrefs.SetString("wheelLightOffColor", inputStrin.text);
+        SelectionWheel.INSTANCE.SetOffColor(x);
+    }
+    public void SetWheelLightsOnColor(TMPro.TMP_InputField inputStrin)
+    {
+        Color x;
+        ColorUtility.TryParseHtmlString(inputStrin.text, out x);
+
+        PlayerPrefs.SetString("wheelLightOnColor", inputStrin.text);
+        SelectionWheel.INSTANCE.SetOnColor(x);
+    }
+    public void SetWheelIndicatorColor(TMPro.TMP_InputField inputStrin)
+    {
+        Color x;
+        ColorUtility.TryParseHtmlString(inputStrin.text, out x);
+
+        PlayerPrefs.SetString("wheelIndicatorColor", inputStrin.text);
+        SelectionWheel.INSTANCE.SetIndicatorColor(x);
+    }
+    public void Nuke()
+    {
+        PlayerPrefs.DeleteAll();
+        Application.Quit();
+    }
 }
