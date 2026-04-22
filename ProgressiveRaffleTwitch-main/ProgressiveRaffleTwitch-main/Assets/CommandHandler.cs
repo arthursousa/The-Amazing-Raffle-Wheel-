@@ -20,6 +20,7 @@ public class CommandHandler : MonoBehaviour
     private string helpMessage = "whelp";
     private string startRaffleMessage = "raffle";
     private string endRaffleMessage = "endraffle";
+    private string cancelRaffleMessage = "cancelraffle";
     private string spinWheelMessage = "spin";
     private string modifyChatterWeight = "influence";
     private string modifyChatterNepotism = "nepotism";
@@ -194,6 +195,11 @@ public class CommandHandler : MonoBehaviour
 
         if (e.Command.CommandText == startRaffleMessage)
         {
+            if (raffleOpen)
+            {
+                twitchClient.SendChatMessage(string.Format("Raffle is already open, silly. Use !cancelraffle if you with to close it", raffleKeyWord));
+                return;
+            }
             if (e.Command.ArgumentsAsList.Count > 0)
                 if (e.Command.ArgumentsAsList[0] != "")
                     raffleKeyWord = e.Command.ArgumentsAsList[0];
@@ -210,6 +216,14 @@ public class CommandHandler : MonoBehaviour
             {
                 ChooseWinner();
             }
+        }
+
+        else if (e.Command.CommandText == cancelRaffleMessage)
+        {
+            twitchClient.SendChatMessage("Canceling Raffle!");
+            raffleOpen = false;
+            ResetDrawing();
+            SelectionWheel.INSTANCE.HideWheel();
         }
 
         else if (e.Command.CommandText == helpMessage)

@@ -155,17 +155,17 @@ public class SelectionWheel : MonoBehaviour
             SetOffColor(x);
         }
         if (PlayerPrefs.HasKey("wheelLightOnColor"))
-        {   
+        {
             ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("wheelLightOnColor"), out x);
             SetBackgroundColor(x);
             SetOnColor(x);
         }
         if (PlayerPrefs.HasKey("wheelIndicatorColor"))
-        {    
+        {
             ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("wheelIndicatorColor"), out x);
             SetBackgroundColor(x);
             SetIndicatorColor(x);
-        }      
+        }
     }
 
     public void SetBackgroundColor(Color color)
@@ -275,13 +275,17 @@ public class SelectionWheel : MonoBehaviour
 
         Transform currentSpinnable = useExterior ? wheelRotator : selector;
         float currentSpeed = Random.Range(minInitialSelectorSpeed, maxInitialSelectorSpeed);
-        while (currentSpeed > 0)
+        do
         {
             //DO SELECTOR ROTATION HERE HOWEVER WE DO IT 
             if (currentSpeed <= 0)
                 currentSpeed = 0;
+
             currentSpinnable.Rotate(new Vector3(0, 0, currentSpeed * Time.deltaTime));
             currentSpeed -= slowDowRate * Time.deltaTime;
+
+            if (currentSpeed <= 0)
+                currentSpeed = 0;
             // selectorReference.transform.position += new Vector3(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"), 0) * selectorSpeed * Time.deltaTime;
 
             //if (Vector3.Distance(selector.transform.position, selectorReference.transform.position) > selectorRadius)
@@ -336,7 +340,7 @@ public class SelectionWheel : MonoBehaviour
             Debug.Log(currentlySelectedIndex);
             // Time.fixedDeltaTime = Time.timeScale * 0.02f;
             yield return null;
-        }
+        } while (currentSpeed > 0);
 
         if (currentlySelectedIndex == -1)
             yield break;
@@ -358,12 +362,16 @@ public class SelectionWheel : MonoBehaviour
             if (blinkCoroutine != null)
                 StopCoroutine(blinkCoroutine);
 
-            lightOn3.DOKill();
-
             weightedPieces[currentlySelectedIndex].GetComponentInChildren<Image>().color = Color.white;
-            allGroup.alpha = 0;
-            wheelgroup.alpha = 0;
+
+            HideWheel();
         }
+    }
+    public void HideWheel()
+    {
+        lightOn3.DOKill();
+        allGroup.alpha = 0;
+        wheelgroup.alpha = 0;
     }
 
     private float currentWheelDivisionAngle;
